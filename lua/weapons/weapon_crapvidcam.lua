@@ -48,7 +48,7 @@ if CLIENT then
 		DEATH_DROP = CreateClientConVar("crapvidcam_deathdrop", "1", true, false, "Drop camera on death and continue recording until you respawn", 0, 1),
 		FOV = CreateClientConVar("crapvidcam_fov", "0.5", true, false, "How much to zoom the camera in. Smaller number = More zoomed in", 0.05, 1),
 		ONLY_AUDIO = CreateClientConVar("crapvidcam_onlyaudio", "0", true, false, "Record only audio (NO VIDEO) in .ogv format", 0, 1),
-		LOCK_FPS = CreateClientConVar("crapvidcam_lockfps", "0", true, false, "If non-zero, lock fps to this number", 0, 60),
+		LOCK_FPS = CreateClientConVar("crapvidcam_lockfps", "30", true, false, "Recording FPS (0 uses 30)", 0, 60),
 		BITRATE = CreateClientConVar("crapvidcam_bitrate", "30", true, false, "Video recording bitrate, in bits per second", 0, 65536),
 		WIDTH = CreateClientConVar("crapvidcam_width", "480", true, false, "Video width override, in pixels. 0 = automatic", 0, 7680),
 		DSP = CreateClientConVar("crapvidcam_dsp", "38", true, false, "Type of distortion to apply to recorded sound. See https://wiki.facepunch.com/gmod/DSP_Presets", 0, 133),
@@ -180,8 +180,11 @@ function VIDCAM_TOGGLE(trySimpleRes)
 		VIDCAM_CONFIG.name = "vidcam-" .. util.DateStamp()
 		VIDCAM_CONFIG.bitrate = VIDCAM_CVARS.BITRATE:GetInt()
 		local fps = VIDCAM_CVARS.LOCK_FPS:GetInt()
-		VIDCAM_CONFIG.fps = fps > 0 and fps or 24
-		VIDCAM_CONFIG.lockfps = fps > 0
+		if fps <= 0 then
+			fps = 30
+		end
+		VIDCAM_CONFIG.fps = fps
+		VIDCAM_CONFIG.lockfps = true
 		if trySimpleRes then
 			VIDCAM_CONFIG.width = 480
 			VIDCAM_CONFIG.height = 360
@@ -303,7 +306,7 @@ local defaultCvars = {
 	crapvidcam_deathdrop = 1,
 	crapvidcam_fov = 0.5,
 	crapvidcam_onlyaudio = 0,
-	crapvidcam_lockfps = 0,
+	crapvidcam_lockfps = 30,
 	crapvidcam_bitrate = 30,
 	crapvidcam_width = 480,
 	crapvidcam_dsp = 38,
@@ -316,7 +319,7 @@ hook.Add("PopulateToolMenu", "CrapVidCam.Options", function()
 		form:ControlHelp("These settings are experimental and only here due to popular demand. If something goes wrong after adjusting these settings, it's on you!")
 		form:NumSlider("Zoom level (FOV)", "crapvidcam_fov", 0.05, 1)
 		form:Help("Note: Locking FPS below 30 requires sv_cheats 1.")
-		form:NumSlider("Lock FPS (0 = don't lock)", "crapvidcam_lockfps", 0, 60, 0)
+		form:NumSlider("Recording FPS (0 uses 30)", "crapvidcam_lockfps", 0, 60, 0)
 		form:NumSlider("Bitrate", "crapvidcam_bitrate", 0, 65536, 0)
 		form:Help("Note: You must use a lower resolution than you are running the game.")
 		local resBoxW = form:ComboBox("Video width", "crapvidcam_width")
